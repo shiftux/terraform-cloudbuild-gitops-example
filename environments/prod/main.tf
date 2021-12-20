@@ -1,18 +1,3 @@
-# Copyright 2019 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 locals {
   env = "prod"
 }
@@ -21,20 +6,18 @@ provider "google" {
   project = "${var.project}"
 }
 
-module "vpc" {
-  source  = "../../modules/vpc"
+module "cluster" {
+  source  = "../../modules/gcp/cluster"
+  # all following vars can be overwritten
+  # Note: Use either a predefined machine type such as n1-standard-1,
+  # or custom-<cpus>-<memory_mb>(-ext) (use this format to specify extended memory (XL cluster))
   project = "${var.project}"
-  env     = "${local.env}"
-}
-
-module "http_server" {
-  source  = "../../modules/http_server"
-  project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
-}
-
-module "firewall" {
-  source  = "../../modules/firewall"
-  project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
+  env = "${local.env}"
+  region = "${var.region}"
+  zone = "${var.zone}"
+  cluster_name = "${var.cluster_name}"
+  node_type = "${var.node_type}"
+  node_disk_size_gb = "${var.node_disk_size_gb}"
+  node_disk_type = "${var.node_disk_type}"
+  number_of_nodes = "${var.number_of_nodes}"
 }
