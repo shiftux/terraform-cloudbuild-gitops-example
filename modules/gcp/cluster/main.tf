@@ -19,8 +19,6 @@ resource "google_container_cluster" "primary" {
   # node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
-  # logging_service    = "logging.googleapis.com/kubernetes"
-  # monitoring_service = "monitoring.googleapis.com/kubernetes"
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
@@ -47,9 +45,18 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   }
 }
 
-# allow access to container registry
+locals {
+  roles = toset([
+    "roles/storage.objectViewer",                 # allow access to container registry
+    "roles/logging.logWriter",                    # allow application logging and monitoring
+    "roles/monitoring.metricWriter",
+    "roles/monitoring.viewer",
+    "roles/stackdriver.resourceMetadata.writer"
+  ])
+}
 resource "google_project_iam_member" "project" {
+  for_each = local.roles
   project = "${var.project}"
-  role    = "roles/storage.objectViewer"
+  role    = each.value
   member  = "serviceAccount:${google_container_node_pool.primary_preemptible_nodes.node_config[0].service_account}"
 }
